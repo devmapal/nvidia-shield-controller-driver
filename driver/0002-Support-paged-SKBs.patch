@@ -1,0 +1,81 @@
+From ec43849ac87eacfffe13f87e554d276b860d2305 Mon Sep 17 00:00:00 2001
+From: Fabian Schaffert <fabian@schaffert.cc>
+Date: Sat, 2 Jul 2016 00:35:52 +0200
+Subject: [PATCH 2/2] Support paged SKBs
+
+This is required for the large configuration descriptor sent by the
+Nvidia Shield Controller.
+---
+ drivers/staging/ozwpan/ozproto.c | 36 ++++++++++++++++++++++++++++++++----
+ 1 file changed, 32 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/staging/ozwpan/ozproto.c b/drivers/staging/ozwpan/ozproto.c
+index 1ba24a2..74736b4 100644
+--- a/drivers/staging/ozwpan/ozproto.c
++++ b/drivers/staging/ozwpan/ozproto.c
+@@ -336,15 +336,27 @@ static void oz_rx_frame(struct sk_buff *skb)
+ 	struct oz_elt *elt;
+ 	int length;
+ 	struct oz_pd *pd = NULL;
+-	struct oz_hdr *oz_hdr = (struct oz_hdr *)skb_network_header(skb);
++	unsigned char *network_header = skb_network_header(skb);
+ 	struct timespec current_time;
+ 	int dup = 0;
+ 	u32 pkt_num;
++	struct oz_hdr *oz_hdr;
++	void *oz_hdr_buffer = NULL;
++	void *oz_data_buffer = NULL;
+ 
+-	oz_dbg(RX_FRAMES, "RX frame PN=0x%x LPN=0x%x control=0x%x\n",
+-	       oz_hdr->pkt_num, oz_hdr->last_pkt_num, oz_hdr->control);
++	if (skb_is_nonlinear(skb)) {
++		oz_hdr_buffer = kmalloc(sizeof(oz_hdr), GFP_KERNEL);
++
++		oz_hdr = (struct oz_hdr *)skb_header_pointer(
++			skb, 0, sizeof(oz_hdr), oz_hdr_buffer);
++	} else {
++		oz_hdr = (struct oz_hdr *)network_header;
++	}
+ 	mac_hdr = skb_mac_header(skb);
+ 	src_addr = &mac_hdr[ETH_ALEN];
++
++	oz_dbg(ON, "RX frame PN=0x%x LPN=0x%x control=0x%x\n",
++	       oz_hdr->pkt_num, oz_hdr->last_pkt_num, oz_hdr->control);
+ 	length = skb->len;
+ 
+ 	/* Check the version field */
+@@ -392,7 +404,20 @@ static void oz_rx_frame(struct sk_buff *skb)
+ 	}
+ 
+ 	length -= sizeof(struct oz_hdr);
+-	elt = (struct oz_elt *)((u8 *)oz_hdr + sizeof(struct oz_hdr));
++
++	if (skb_is_nonlinear(skb)) {
++		oz_data_buffer = kmalloc(length, GFP_KERNEL);
++		if (skb_copy_bits(
++				skb,
++				sizeof(struct oz_hdr),
++				oz_data_buffer,
++				length)) {
++			goto done;
++		}
++		elt = (struct oz_elt *)oz_data_buffer;
++	} else {
++		elt = (struct oz_elt *)((u8 *)oz_hdr + sizeof(struct oz_hdr));
++	}
+ 
+ 	while (length >= sizeof(struct oz_elt)) {
+ 		length -= sizeof(struct oz_elt) + elt->length;
+@@ -446,6 +471,9 @@ static void oz_rx_frame(struct sk_buff *skb)
+ done:
+ 	if (pd)
+ 		oz_pd_put(pd);
++
++	kfree(oz_hdr_buffer);
++	kfree(oz_data_buffer);
+ 	consume_skb(skb);
+ }
+ 
+-- 
+2.7.3
+
