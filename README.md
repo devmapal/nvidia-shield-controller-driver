@@ -6,6 +6,19 @@ controller) and 3 USB audio devices (headphone audio sink, headphone audio
 source if it has a microphone and controller internal audio source
 (microphone).
 
+## Prerequisites
+Requires a WLAN card that can operate in P2P-GO mode.
+
+```
+# iw list
+...
+        Supported interface modes:
+        ...
+                 * P2P-GO
+        ...
+...
+```
+
 ## Building the driver
 Apply the patch set in `driver` to your kernel sources (currently only tested
 with a 4.4 kernel) and make sure the following configuration options are set.
