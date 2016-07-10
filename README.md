@@ -42,7 +42,8 @@ wpa_supplicant works as follows.
 
 ```
 # wpa_cli -i wlp3s0 p2p_group_add
-# wpa_cli -i p2p-wlp3s0-0 wps_pbc
+# wpa_cli -i p2p-wlp3s0-0
+> wps_pbc
 ```
 
 Now hold the Nvidia button on the controller until it flashes. When the button
