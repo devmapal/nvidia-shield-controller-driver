@@ -40,8 +40,15 @@ The SHIELD Controller uses WPS Push Button method for pairing, with the PC
 setting itself as the autonomous Group Owner. Pairing the controller using
 wpa_supplicant works as follows.
 
+Ensure that you have
 ```
-# wpa_cli -i wlp3s0 p2p_group_add
+update_config=1
+```
+set in `wpa_supplicant.conf`. While this is not required, it allows for
+skipping WPS pairing the next time the controller is conntected.
+
+```
+# wpa_cli -i wlp3s0 p2p_group_add persistent
 # wpa_cli -i p2p-wlp3s0-0
 > wps_pbc
 ```
@@ -75,6 +82,30 @@ Bus 003 Device 002: ID 0955:7210 NVidia Corp.
 
 Note that these instructions assume that wireless interface created is called
 `p2p-wlp3s0-0`.
+
+### Reconnecting the Controller
+Find the network that was created for the controller
+
+```
+# wpa_cli -i wlp3s0 list_networks
+network id / ssid / bssid / flags
+...
+8       DIRECT-0E       a0:a8:cd:0f:64:ce       [DISABLED][P2P-PERSISTENT]
+...
+```
+Note that the network id and bssid will probably be different for you, the the
+ssid will always start with `DIRECT-`.
+
+```
+# wpa_cli -i wlp3s0 p2p_group_add persistent=<network-id>
+# modprobe ozwpan g_net_dev=p2p-wlp3s0-0
+```
+
+Replace `<network-id>` the the network id obtained from `wpa_cli -i wlp3s0
+list_networks`.
+
+Now touch the NVidia button on the controller. It should be connected after a
+couple of seconds.
 
 ## Choppy audio
 If audio is choppy, try the following PulseAudio configuration.
