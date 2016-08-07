@@ -1,7 +1,7 @@
-From a0832aaf4cc3ad28d5e546e5962f3528633c7ec3 Mon Sep 17 00:00:00 2001
+From f39a5d3cfce5f1ae9f64981619ed1f71c820d27b Mon Sep 17 00:00:00 2001
 From: Fabian Schaffert <fabian@schaffert.cc>
 Date: Sat, 2 Jul 2016 00:25:59 +0200
-Subject: [PATCH 1/2] Revert "staging: ozwpan: Remove from tree"
+Subject: [PATCH 1/4] Revert "staging: ozwpan: Remove from tree"
 
 This reverts commit a73e99cb67e7438e5ab0c524ae63a8a27616c839.
 ---
@@ -59,10 +59,10 @@ This reverts commit a73e99cb67e7438e5ab0c524ae63a8a27616c839.
  create mode 100644 drivers/staging/ozwpan/ozusbsvc1.c
 
 diff --git a/MAINTAINERS b/MAINTAINERS
-index 1209323..c9bebc6 100644
+index 429fc61..714fb48 100644
 --- a/MAINTAINERS
 +++ b/MAINTAINERS
-@@ -10892,6 +10892,11 @@ W:	http://wiki.laptop.org/go/DCON
+@@ -11136,6 +11136,11 @@ W:	http://wiki.laptop.org/go/DCON
  S:	Maintained
  F:	drivers/staging/olpc_dcon/
  
@@ -75,7 +75,7 @@ index 1209323..c9bebc6 100644
  M:	Larry Finger <Larry.Finger@lwfinger.net>
  M:	Florian Schilhabel <florian.c.schilhabel@googlemail.com>.
 diff --git a/drivers/staging/Kconfig b/drivers/staging/Kconfig
-index 7c197d1..3e8e982 100644
+index af94764..583d012 100644
 --- a/drivers/staging/Kconfig
 +++ b/drivers/staging/Kconfig
 @@ -70,6 +70,8 @@ source "drivers/staging/android/Kconfig"
@@ -88,7 +88,7 @@ index 7c197d1..3e8e982 100644
  
  source "drivers/staging/fwserial/Kconfig"
 diff --git a/drivers/staging/Makefile b/drivers/staging/Makefile
-index a470c72..f9b31e8 100644
+index 9f6009d..a125112 100644
 --- a/drivers/staging/Makefile
 +++ b/drivers/staging/Makefile
 @@ -25,6 +25,7 @@ obj-$(CONFIG_SPEAKUP)		+= speakup/

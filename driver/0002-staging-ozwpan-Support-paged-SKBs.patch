@@ -1,24 +1,23 @@
-From ec43849ac87eacfffe13f87e554d276b860d2305 Mon Sep 17 00:00:00 2001
+From c64f66c63fd525615b8bb0a0bc8182dcf439f034 Mon Sep 17 00:00:00 2001
 From: Fabian Schaffert <fabian@schaffert.cc>
 Date: Sat, 2 Jul 2016 00:35:52 +0200
-Subject: [PATCH 2/2] Support paged SKBs
+Subject: [PATCH 2/4] staging: ozwpan: Support paged SKBs
 
 This is required for the large configuration descriptor sent by the
 Nvidia Shield Controller.
 ---
- drivers/staging/ozwpan/ozproto.c | 36 ++++++++++++++++++++++++++++++++----
- 1 file changed, 32 insertions(+), 4 deletions(-)
+ drivers/staging/ozwpan/ozproto.c | 39 +++++++++++++++++++++++++++++++++++----
+ 1 file changed, 35 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/staging/ozwpan/ozproto.c b/drivers/staging/ozwpan/ozproto.c
-index 1ba24a2..74736b4 100644
+index 1ba24a2..13fa2ff 100644
 --- a/drivers/staging/ozwpan/ozproto.c
 +++ b/drivers/staging/ozwpan/ozproto.c
-@@ -336,15 +336,27 @@ static void oz_rx_frame(struct sk_buff *skb)
+@@ -336,15 +336,28 @@ static void oz_rx_frame(struct sk_buff *skb)
  	struct oz_elt *elt;
  	int length;
  	struct oz_pd *pd = NULL;
 -	struct oz_hdr *oz_hdr = (struct oz_hdr *)skb_network_header(skb);
-+	unsigned char *network_header = skb_network_header(skb);
  	struct timespec current_time;
  	int dup = 0;
  	u32 pkt_num;
@@ -30,11 +29,13 @@ index 1ba24a2..74736b4 100644
 -	       oz_hdr->pkt_num, oz_hdr->last_pkt_num, oz_hdr->control);
 +	if (skb_is_nonlinear(skb)) {
 +		oz_hdr_buffer = kmalloc(sizeof(oz_hdr), GFP_KERNEL);
++		if (!oz_hdr_buffer)
++			goto done;
 +
 +		oz_hdr = (struct oz_hdr *)skb_header_pointer(
 +			skb, 0, sizeof(oz_hdr), oz_hdr_buffer);
 +	} else {
-+		oz_hdr = (struct oz_hdr *)network_header;
++		oz_hdr = (struct oz_hdr *)skb_network_header(skb);
 +	}
  	mac_hdr = skb_mac_header(skb);
  	src_addr = &mac_hdr[ETH_ALEN];
@@ -44,7 +45,7 @@ index 1ba24a2..74736b4 100644
  	length = skb->len;
  
  	/* Check the version field */
-@@ -392,7 +404,20 @@ static void oz_rx_frame(struct sk_buff *skb)
+@@ -392,7 +405,22 @@ static void oz_rx_frame(struct sk_buff *skb)
  	}
  
  	length -= sizeof(struct oz_hdr);
@@ -52,6 +53,8 @@ index 1ba24a2..74736b4 100644
 +
 +	if (skb_is_nonlinear(skb)) {
 +		oz_data_buffer = kmalloc(length, GFP_KERNEL);
++		if (!oz_data_buffer)
++			goto done;
 +		if (skb_copy_bits(
 +				skb,
 +				sizeof(struct oz_hdr),
@@ -66,7 +69,7 @@ index 1ba24a2..74736b4 100644
  
  	while (length >= sizeof(struct oz_elt)) {
  		length -= sizeof(struct oz_elt) + elt->length;
-@@ -446,6 +471,9 @@ static void oz_rx_frame(struct sk_buff *skb)
+@@ -446,6 +474,9 @@ static void oz_rx_frame(struct sk_buff *skb)
  done:
  	if (pd)
  		oz_pd_put(pd);

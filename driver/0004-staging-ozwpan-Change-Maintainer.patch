@@ -1,0 +1,26 @@
+From 236ef1d7e448ff068021f34828cc5afeb9a55dfc Mon Sep 17 00:00:00 2001
+From: Fabian Schaffert <fabian@schaffert.cc>
+Date: Mon, 11 Jul 2016 23:27:31 +0200
+Subject: [PATCH 4/4] staging: ozwpan: Change Maintainer
+
+Shigekatsu Tateno does not seem to maintain the driver anymore.
+---
+ MAINTAINERS | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 714fb48..bb76477 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -11137,7 +11137,7 @@ S:	Maintained
+ F:	drivers/staging/olpc_dcon/
+ 
+ STAGING - OZMO DEVICES USB OVER WIFI DRIVER
+-M:	Shigekatsu Tateno <shigekatsu.tateno@atmel.com>
++M:	Fabian Schaffert <fabian@schaffert.cc>
+ S:	Maintained
+ F:	drivers/staging/ozwpan/
+ 
+-- 
+2.7.3
+
